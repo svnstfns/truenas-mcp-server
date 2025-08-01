@@ -239,6 +239,37 @@ class MCPToolsHandler:
                     "additionalProperties": False,
                 },
             ),
+            
+            # Diagnostic & Convenience Tools
+            Tool(
+                name="diagnose_docker_issues",
+                description="Diagnose Docker engine issues and network conflicts",
+                inputSchema={"type": "object", "properties": {}, "additionalProperties": False}
+            ),
+            Tool(
+                name="cleanup_stale_containers", 
+                description="Clean up stale containers and fix conflicts",
+                inputSchema={
+                    "type": "object",
+                    "properties": {
+                        "force": {"type": "boolean", "default": False}
+                    },
+                    "additionalProperties": False
+                }
+            ),
+            Tool(
+                name="bulk_app_operation",
+                description="Start/stop multiple apps at once",
+                inputSchema={
+                    "type": "object", 
+                    "properties": {
+                        "operation": {"type": "string", "enum": ["start", "stop"]},
+                        "app_names": {"type": "array", "items": {"type": "string"}}
+                    },
+                    "required": ["operation", "app_names"],
+                    "additionalProperties": False
+                }
+            ),
         ]
 
     async def call_tool(self, name: str, arguments: Dict[str, Any]) -> TextContent:

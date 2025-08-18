@@ -12,6 +12,7 @@ from mcp.types import Tool
 
 from .mcp_tools import MCPToolsHandler
 from .truenas_client import TrueNASClient
+from .security_config import validate_all_security_configuration, enforce_production_security_requirements
 
 logger = structlog.get_logger(__name__)
 
@@ -27,7 +28,7 @@ class TrueNASMCPServer:
         
         # Configuration from environment
         self.config = {
-            "truenas_host": os.getenv("TRUENAS_HOST", "nas.pvnkn3t.lan"),
+            "truenas_host": os.getenv("TRUENAS_HOST", "localhost"),
             "truenas_api_key": os.getenv("TRUENAS_API_KEY"),
             "truenas_port": int(os.getenv("TRUENAS_PORT", "443")),
             "truenas_protocol": os.getenv("TRUENAS_PROTOCOL", "wss"),
@@ -38,6 +39,9 @@ class TrueNASMCPServer:
         
         # Setup logging
         self._setup_logging()
+        
+        # Validate security configuration
+        self._validate_security_configuration()
         
         # Register MCP handlers
         self._register_handlers()
@@ -70,6 +74,23 @@ class TrueNASMCPServer:
             mock_mode=self.config["mock_mode"],
             debug_mode=self.config["debug_mode"],
         )
+
+    def _validate_security_configuration(self) -> None:
+        """Validate security configuration and enforce production requirements."""
+        try:
+            # Validate all security settings
+            is_valid, issues = validate_all_security_configuration(self.config)
+            
+            if issues:
+                for issue in issues:
+                    logger.warning("Security configuration issue", issue=issue)
+            
+            # Enforce production security requirements (will raise if critical issues)
+            enforce_production_security_requirements(self.config)
+            
+        except Exception as e:
+            logger.error("Security configuration validation failed", error=str(e))
+            raise
 
     def _register_handlers(self) -> None:
         """Register MCP protocol handlers."""

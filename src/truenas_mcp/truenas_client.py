@@ -59,6 +59,10 @@ class TrueNASClient:
             ssl_context = None
             if not self.ssl_verify and self.protocol == "wss":
                 import ssl
+                logger.warning(
+                    "SSL certificate verification is DISABLED. This is insecure and should only be used in development.",
+                    host=self.host
+                )
                 ssl_context = ssl.create_default_context()
                 ssl_context.check_hostname = False
                 ssl_context.verify_mode = ssl.CERT_NONE
